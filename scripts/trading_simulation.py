@@ -1,13 +1,17 @@
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import pickle
 
 def load_data():
-    # Example: Load data from CSV files
-    new_df = pd.read_csv('data/new_df.csv')  # Replace with the correct file path
-    TO_PREDICT = pd.read_csv('data/to_predict.csv').columns.tolist()  # Or a `pickle` file
-    PREDICTIONS = pd.read_csv('data/predictions.csv').columns.tolist()  # Or a `pickle` file
-    return new_df, TO_PREDICT, PREDICTIONS
+    # Load data from CSV files
+    new_df = pd.read_csv('updated_predictions3.csv')
+    with open('get_predictions_correctness.pkl', 'rb') as f:
+        get_predictions_correctness = pickle.load(f)
+    TO_PREDICT = 'Is_Positive_Growth_1h_Future'
+    PREDICTIONS, IS_CORRECT = get_predictions_correctness(new_df, TO_PREDICT)
+
+    return new_df, TO_PREDICT, PREDICTIONS, IS_CORRECT
 
 def trading_simulation():
     # Load data

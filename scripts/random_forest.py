@@ -158,7 +158,27 @@ def analyze_rf_model(new_df, rf_model, X_all, X_test, y_test):
 
 def train_random_forest_model():
     # Load preprocessed dataset and additional data
-    new_df = pd.read_csv('prepared_df.csv')
+    new_df = pd.read_csv('updated_predictions.csv')
+
+    with open('get_predictions_correctness.pkl', 'rb') as f:
+        get_predictions_correctness = pickle.load(f)
+
+    with open('column_lists.pkl', 'rb') as f:
+        data = pickle.load(f)
+        NUMERICAL = data['NUMERICAL']
+        GROWTH = data['GROWTH']
+        DUMMIES = data['DUMMIES']
+        TO_PREDICT = data['TO_PREDICT']
+
+    with open('data_split.pkl', 'rb') as f:
+        split_data = pickle.load(f)
+        X_valid = split_data['X_valid']
+        y_valid = split_data['y_valid']
+        X_test = split_data['X_test']
+        y_test = split_data['y_test']
+        y_train_valid = split_data['y_train_valid']
+        X_all = split_data['X_all']
+        X_train_valid = split_data['X_train_valid']
 
     # Load lists of columns
     with open('column_lists.pkl', 'rb') as f:
@@ -191,6 +211,8 @@ def train_random_forest_model():
     
     # Output the first few rows of the updated dataframe
     print(new_df.head())
+
+    new_df.to_csv('updated_predictions2.csv', index=False)
 
 if __name__ == "__main__":
     train_random_forest_model()

@@ -89,7 +89,7 @@ def tpr_fpr_dataframe(y_true, y_pred, only_even=False):
     return df_scores
 
 def train_logistic_regression_model():
-    new_df = pd.read_csv('prepared_df.csv')
+    new_df = pd.read_csv('updated_predictions2.csv')
 
     with open('data_split.pkl', 'rb') as f:
         split_data = pickle.load(f)
@@ -182,6 +182,8 @@ def train_logistic_regression_model():
                       textfont_color='white')
 
     fig.show()
+
+    new_df.to_csv('updated_predictions3.csv', index=False)
 
 if __name__ == "__main__":
     train_logistic_regression_model()

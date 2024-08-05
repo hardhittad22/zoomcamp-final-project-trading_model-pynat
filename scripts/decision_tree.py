@@ -31,6 +31,9 @@ def get_predictions_correctness(df: pd.DataFrame, to_predict: str):
 
     return PREDICTIONS, IS_CORRECT
 
+with open('get_predictions_correctness.pkl', 'wb') as f:
+    pickle.dump(get_predictions_correctness, f)
+
 # Function to fit a Decision Tree
 def fit_decision_tree(X, y, max_depth=20):
     clf = DecisionTreeClassifier(max_depth=max_depth, random_state=42)
@@ -40,6 +43,9 @@ def fit_decision_tree(X, y, max_depth=20):
 # Main function for modeling
 def train_decision_tree_model():
     new_df = pd.read_csv('prepared_df.csv')
+    new_df = new_df.drop(columns=['Date', 'Ticker', 'Ticker_Type', 'Coin', 
+                                   'ADX_binned', 'RSI_binned', 'MACD_binned', 'Volume_binned', 
+                                   'Aroon_binned', 'BBP_binned'])
 
     # Load necessary columns and data splits
     with open('column_lists.pkl', 'rb') as f:
@@ -140,6 +146,8 @@ def train_decision_tree_model():
 
     # Recalculate the correctness after adding the new predictions
     PREDICTIONS, IS_CORRECT = get_predictions_correctness(df=new_df, to_predict=to_predict)
+
+    new_df.to_csv('updated_predictions.csv', index=False)
 
 if __name__ == "__main__":
     train_decision_tree_model()
