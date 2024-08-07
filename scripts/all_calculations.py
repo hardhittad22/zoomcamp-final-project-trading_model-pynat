@@ -1,25 +1,35 @@
-import numpy as np
 import pandas as pd
-import pandas_ta as ta
 import yfinance as yf
-import time
+import numpy as np
+import pandas_ta as ta
 
-# Function to calculate technical indicators
+# Ensure Date is datetime and handle timezone conversions correctly
+def ensure_datetime_with_tz(df, date_col='Date', target_tz='Europe/Berlin'):
+    # Convert to datetime and force UTC timezone awareness
+    df[date_col] = pd.to_datetime(df[date_col], utc=True, errors='coerce')
+
+    # Convert to target timezone
+    df[date_col] = df[date_col].dt.tz_convert(target_tz)
+
+    return df
+
+# Main code structure
+
 def add_ta_indicators(df):
+    # Ensure the columns are in the correct data types
     df['Open'] = df['Open'].astype('float64')
     df['High'] = df['High'].astype('float64')
     df['Low'] = df['Low'].astype('float64')
     df['Close'] = df['Close'].astype('float64')
     df['Volume'] = df['Volume'].astype('float64')
 
-    # Calculating Indicators relevant for swing trading
+    # Calculate various technical indicators
     df.ta.adx(high='High', low='Low', close='Close', append=True)
     df.ta.aroon(high='High', low='Low', append=True)
     df.ta.bop(open='Open', high='High', low='Low', close='Close', append=True)
     df.ta.cci(high='High', low='Low', close='Close', append=True)
     df.ta.cmo(close='Close', append=True)
     df.ta.macd(close='Close', append=True)
-    df.ta.mfi(high='High', low='Low', close='Close', volume='Volume', append=True)
     df.ta.mom(close='Close', append=True)
     df.ta.ppo(close='Close', append=True)
     df.ta.roc(close='Close', append=True)
@@ -41,7 +51,32 @@ def add_ta_indicators(df):
 
     return df
 
-# Function to check for empty columns
+def add_custom_calculations(df, group_by_col='Ticker'):
+    new_columns = {}
+
+    # Shift the 'Close' values forward and backward
+    new_columns['Adj_Close_Minus_1'] = df.groupby(group_by_col)['Close'].shift(-1)
+    new_columns['Adj_Close_Plus_1'] = df.groupby(group_by_col)['Close'].shift(1)
+
+    # Calculate growth over different time periods
+    for hours in [1, 4, 24, 48, 72, 168, 336, 720]:
+        new_columns[f'Growth_{hours}h'] = df.groupby(group_by_col)['Close'].shift(hours) / df['Close']
+        future_shifted = df.groupby(group_by_col)['Close'].shift(-hours)
+        new_columns[f'Growth_Future_{hours}h'] = future_shifted / df['Close']
+        new_columns[f'Is_Positive_Growth_{hours}h_Future'] = np.where(new_columns[f'Growth_Future_{hours}h'] > 1, 1, 0)
+
+    # Calculate Fibonacci levels
+    new_columns['Fibonacci_0'] = df['Adj Close']
+    new_columns['Fibonacci_23_6'] = df['High'] - (df['High'] - df['Low']) * 0.236
+    new_columns['Fibonacci_38_2'] = df['High'] - (df['High'] - df['Low']) * 0.382
+    new_columns['Fibonacci_50'] = df['High'] - (df['High'] - df['Low']) * 0.5
+    new_columns['Fibonacci_61_8'] = df['High'] - (df['High'] - df['Low']) * 0.618
+    new_columns['Fibonacci_100'] = df['Low']
+
+    # Add the new columns to the DataFrame
+    df = df.assign(**new_columns)
+    
+    return df
 def check_empty_columns(df):
     empty_columns = df.columns[df.isnull().any()].tolist()
     return empty_columns
@@ -56,129 +91,63 @@ def check_zero_only_columns(df):
     zero_only_columns = df.columns[(df == 0).all()].tolist()
     return zero_only_columns
 
-# Function to clean duplicate column names
-def clean_duplicate_columns(df):
-    df = df.loc[:, ~df.columns.duplicated()]
-    return df
-
-# Function to add shifted and growth columns
-def add_shifted_and_growth_columns(df):
-    group_by_col = 'Ticker'
-    
-     # Create a dictionary for new columns
-    new_columns = {}
-
-    new_columns['Adj_Close_Minus_1'] = df.groupby(group_by_col)['Close'].shift(-1)
-    new_columns['Adj_Close_Plus_1'] = df.groupby(group_by_col)['Close'].shift(1)
-
-    # Calculation for different time periods
-    for hours in [1, 4, 24, 48, 72, 168, 336, 720]:
-        new_columns[f'Growth_{hours}h'] = df.groupby(group_by_col)['Close'].shift(hours) / df['Close']
-        future_shifted = df.groupby(group_by_col)['Close'].shift(-hours)
-        new_columns[f'Growth_Future_{hours}h'] = future_shifted / df['Close']
-        new_columns[f'Is_Positive_Growth_{hours}h_Future'] = np.where(new_columns[f'Growth_Future_{hours}h'] > 1, 1, 0)
-
-    # Add all new columns at once
-    df = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
-
-    return df
-
-# Function to add Fibonacci levels
-def add_fibonacci_levels(df):
-    new_columns = {
-        'Fibonacci_0': df['Adj Close'],
-        'Fibonacci_23_6': df['High'] - (df['High'] - df['Low']) * 0.236,
-        'Fibonacci_38_2': df['High'] - (df['High'] - df['Low']) * 0.382,
-        'Fibonacci_50': df['High'] - (df['High'] - df['Low']) * 0.5,
-        'Fibonacci_61_8': df['High'] - (df['High'] - df['Low']) * 0.618,
-        'Fibonacci_100': df['Low']
-    }
-
-    df = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
-    return df
-
-# Function to fetch index data
-def get_index_data(index, period='2y', interval='1h'):
-    data = yf.download(index, period=period, interval=interval)
-    data.index = data.index.tz_convert('Europe/Berlin')  # Timezone convert
-    data['Date'] = data.index
-    return data[['Date', 'Close']].rename(columns={'Close': f'Close_{index}'})
-
-def remove_duplicate_timestamps(df):
-    df = df[~df.index.duplicated(keep='first')]
-    return df
-
-def calculations():
-    # Read Data
-    crypto_df = pd.read_csv('crypto.csv', index_col='Date', parse_dates=True)
-    stocks_df = pd.read_csv('stocks.csv', index_col='Date', parse_dates=True)
-
-    # Timezones for DFs
-    crypto_df.index = pd.to_datetime(crypto_df.index, utc=True).tz_convert('Europe/Berlin')
-    stocks_df.index = pd.to_datetime(stocks_df.index, utc=True).tz_convert('Europe/Berlin')
-
-    # Defining Market Indices
-    market_indices = ['^GSPC', '^IXIC', '^RUT', '^DJI', '^SPX', '^VIX']
-
-    # Calling Indices
+def fetch_market_indices(market_indices):
+    # Dictionary to store the index data
     indices_data = {}
+
+    # Fetch data for each market index
     for index in market_indices:
-        print(f'Downloading stats for index: {index}')
-        indices_data[index] = get_index_data(index)
-        time.sleep(0.5)  # Pause to avoid API limits
+        data = yf.download(index, period='1y', interval='1h')  
+        data = data[['Adj Close']].rename(columns={'Adj Close': index}) 
+        indices_data[index] = data
 
-    # Adding Indizes
-    for index, index_data in indices_data.items():
-        index_data = index_data.reset_index(drop=True)
-        crypto_df = pd.merge(crypto_df.reset_index(), index_data, on='Date', how='left').set_index('Date')
-        stocks_df = pd.merge(stocks_df.reset_index(), index_data, on='Date', how='left').set_index('Date')
+    # Combine all indices data into one DataFrame
+    combined_indices = pd.concat(indices_data.values(), axis=1)
+    
+    return combined_indices
 
-    # Clean duplicate column names
-    stocks_df = clean_duplicate_columns(stocks_df)
-    crypto_df = clean_duplicate_columns(crypto_df)
+# Fetch example market data
+market_indices = ['^GSPC', '^IXIC', '^RUT', '^DJI', '^SPX', '^VIX']
+indices_df = fetch_market_indices(market_indices)
+indices_df.index = indices_df.index.tz_convert('Europe/Berlin')
 
-    # Merge DataFrames
-    combined_df = pd.concat([crypto_df, stocks_df], ignore_index=False)
+# Round the timestamps of 'indices_df' to the nearest hour
+indices_df.index = indices_df.index.round('h')  
 
-    # Remove duplicate timestamps
-    combined_df = remove_duplicate_timestamps(combined_df)
+# Load the existing DataFrames
+crypto_df = pd.read_csv('crypto.csv')
+stocks_df = pd.read_csv('stocks.csv')
 
-    # Apply functions
-    combined_df = add_shifted_and_growth_columns(combined_df)
-    combined_df = add_fibonacci_levels(combined_df)
+# Combine the crypto and stock DataFrames
+combined_df = pd.concat([crypto_df, stocks_df], ignore_index=True)
 
-    # Add technical indicators
-    combined_df = add_ta_indicators(combined_df)
+# Ensure Date column is properly formatted with timezone awareness
+combined_df = ensure_datetime_with_tz(combined_df)
 
-    # Check for empty or zero-value columns
-    empty_columns = check_empty_columns(combined_df)
-    completely_empty_columns = check_completely_empty_columns(combined_df)
-    zero_only_columns = check_zero_only_columns(combined_df)
+# Add technical indicators
+combined_df = add_ta_indicators(combined_df)
 
-    print("Columns that are empty:", empty_columns)
-    print("Columns that are completely empty:", completely_empty_columns)
-    print("Columns with just Zero:", zero_only_columns)
+# Add custom calculations
+combined_df = add_custom_calculations(combined_df)
 
-    # Save combined DataFrame
-    combined_df.to_csv('everything_data.csv', index=True)
+# Set 'Date' as the index and ensure no duplicates
+combined_df.set_index('Date', inplace=True)
+combined_df = combined_df[~combined_df.index.duplicated(keep='first')]
+indices_df = indices_df[~indices_df.index.duplicated(keep='first')]
 
-    # Display results 
-    print("crypto_df_filtered head:", crypto_df.head(2))
-    print("stocks_df head:", stocks_df.head(2))
-    print("combined_df head:", combined_df.head(2))
+# make sure they use the same index
+combined_df.index = pd.to_datetime(combined_df.index)
+indices_df.index = pd.to_datetime(indices_df.index)
 
-    print("crypto_df_filtered index type:", type(crypto_df.index))
-    print("stocks_df index type:", type(stocks_df.index))
+empty_columns = check_empty_columns(combined_df)
+completely_empty_columns = check_completely_empty_columns(combined_df)
+zero_only_columns = check_zero_only_columns(combined_df)
 
-    print("crypto_df_filtered Date range:")
-    print(crypto_df.index.min(), crypto_df.index.max())
-    print("stocks_df Date range:")
-    print(stocks_df.index.min(), stocks_df.index.max())
+final_df = pd.concat([combined_df, indices_df], axis=1)
 
-    for index, index_data in indices_data.items():
-        print(f'{index} Date range:')
-        print(index_data.index.min(), index_data.index.max())
+# Savig to csv DataFrames
+final_df.to_csv('everything_data.csv', index=False)
 
-# Main Funktion
-if __name__ == "__main__":
-    calculations()
+print("Market indices successfully added and saved!")
+
+print("combined_df head:", combined_df.head(2))
