@@ -3,8 +3,9 @@ pandas==2.2.2
 google-colab==1.0.0
 requests==2.32.3
 
-yfinance==0.2.40
-pandas-datareader==0.10.0
+yfinance==0.2.41
+pandas-datareader==0.10.0    ?
+pandas_ta == 0.3.14b0
 
 plotly==5.17.0
 matplotlib==3.9.0
