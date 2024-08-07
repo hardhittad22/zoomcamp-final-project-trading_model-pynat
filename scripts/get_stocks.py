@@ -55,7 +55,7 @@ def top_stocks():
     stocks_df = stocks_df[cols]
 
     # save DataFrame as csv
-    stocks_df.to_csv('stocks.csv')
+    stocks_df.to_csv('stocks.csv', index=True)
 
     # Print the first few rows
     print(stocks_df.head())
