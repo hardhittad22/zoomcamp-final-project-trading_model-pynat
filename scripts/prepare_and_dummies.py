@@ -232,15 +232,9 @@ def prepare():
         "Fibonacci_100",
     ]
     CATEGORICAL = ["Ticker", "Ticker_Type", "Coin"]
-    TO_DROP = ["Year", "Date"] + CATEGORICAL + OHLCV
+    
     NUMERICAL = GROWTH + TECHNICAL_INDICATORS + CUSTOM_NUMERICAL
-
-    OTHER = [
-        k
-        for k in reduced_df.keys()
-        if k not in OHLCV + TO_DROP + CATEGORICAL + NUMERICAL + TO_PREDICT
-    ]
-    print(OTHER)
+   
     print(reduced_df.Ticker.nunique())
     reduced_df.tail(1)
 
@@ -461,7 +455,6 @@ def prepare():
                 "TO_PREDICT": TO_PREDICT,
                 "CUSTOM_NUMERICAL": CUSTOM_NUMERICAL,
                 "TECHNICAL_INDICATORS": TECHNICAL_INDICATORS,
-                "TO_DROP": TO_DROP,
                 "NUMERICAL": NUMERICAL,
                 "CATEGORICAL": CATEGORICAL,
                 "DUMMIES": DUMMIES,
@@ -479,7 +472,16 @@ def prepare():
         "Aroon_binned",
         "BBP_binned",
     ]
-    df_with_all_dummies.drop(columns=binned_features, inplace=True, errors="ignore")
+
+    TO_DROP = ["Date"] + CATEGORICAL + OHLCV + binned_features
+    OTHER = [
+        k
+        for k in reduced_df.keys()
+        if k not in OHLCV + TO_DROP + CATEGORICAL + NUMERICAL + TO_PREDICT
+    ]
+    print(OTHER)
+
+    df_with_all_dummies.drop(columns=TO_DROP, inplace=True, errors="ignore")
 
     df_with_all_dummies = df_with_all_dummies.reset_index(drop=True)
 
