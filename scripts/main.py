@@ -1,8 +1,6 @@
 # Import all Functions from scripts
 from scripts.get_stocks import top_stocks
-from scripts.get_crypto import (
-    get_coins,
-)  # needs to run locally in vscode not colab otherwise error 451
+from scripts.get_crypto import get_coins # needs to run locally in vscode not colab due to binance settings otherwise error 451
 from scripts.all_calculations import calculations
 from scripts.prepare_and_dummies import prepare
 from scripts.temporal_split_and_cleaning import split_and_cleaning
