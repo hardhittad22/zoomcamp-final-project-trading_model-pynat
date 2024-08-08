@@ -2,7 +2,10 @@ import pandas as pd
 import numpy as np
 import pickle
 
-def temporal_split(df, min_date, max_date, train_prop=0.7, val_prop=0.15, test_prop=0.15):
+
+def temporal_split(
+    df, min_date, max_date, train_prop=0.7, val_prop=0.15, test_prop=0.15
+):
     min_date = pd.to_datetime(min_date) if isinstance(min_date, str) else min_date
     max_date = pd.to_datetime(max_date) if isinstance(max_date, str) else max_date
     # Convert min_date and max_date to pandas Timestamp if they are strings
@@ -17,18 +20,19 @@ def temporal_split(df, min_date, max_date, train_prop=0.7, val_prop=0.15, test_p
     split_labels = []
 
     # Assign split labels based on date ranges
-    for date in df['Date']:
+    for date in df["Date"]:
         if date <= train_end:
-            split_labels.append('Train')
+            split_labels.append("Train")
         elif date <= val_end:
-            split_labels.append('Validation')
+            split_labels.append("Validation")
         else:
-            split_labels.append('Test')
+            split_labels.append("Test")
 
     # Add the 'Split' column to the DataFrame with the computed labels
-    df['Split'] = split_labels
+    df["Split"] = split_labels
 
     return df
+
 
 def clean_dataframe_from_inf_and_nan(df):
     """
@@ -41,8 +45,8 @@ def clean_dataframe_from_inf_and_nan(df):
         pd.DataFrame: The cleaned DataFrame with NaNs and infinite values handled.
     """
     # Convert categorical columns to object type temporarily
-    cat_cols = df.select_dtypes(include=['category']).columns
-    df[cat_cols] = df[cat_cols].astype('object')
+    cat_cols = df.select_dtypes(include=["category"]).columns
+    df[cat_cols] = df[cat_cols].astype("object")
 
     # Replace +-inf with NaN
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -51,65 +55,66 @@ def clean_dataframe_from_inf_and_nan(df):
     df.fillna(0, inplace=True)
 
     # Convert object columns back to categorical
-    df[cat_cols] = df[cat_cols].astype('category')
+    df[cat_cols] = df[cat_cols].astype("category")
 
     return df
 
-def split_and_cleaning():
-    df_with_all_dummies = pd.read_csv('df_with_all_dummies.csv')
 
-    with open('column_lists.pkl', 'rb') as f:
+def split_and_cleaning():
+    df_with_all_dummies = pd.read_csv("df_with_all_dummies.csv")
+
+    with open("column_lists.pkl", "rb") as f:
         data = pickle.load(f)
-        NUMERICAL = data['NUMERICAL']
-        GROWTH = data['GROWTH']
-        DUMMIES = data['DUMMIES']
-        TO_PREDICT = data['TO_PREDICT']
-        OHLCV = data['OHLCV']
-        CUSTOM_NUMERICAL = data['CUSTOM_NUMERICAL']
-        TECHNICAL_INDICATORS = data['TECHNICAL_INDICATORS']
-        TO_DROP = data['TO_DROP']
-        CATEGORICAL = data['CATEGORICAL']
+        NUMERICAL = data["NUMERICAL"]
+        GROWTH = data["GROWTH"]
+        DUMMIES = data["DUMMIES"]
+        TO_PREDICT = data["TO_PREDICT"]
+        OHLCV = data["OHLCV"]
+        CUSTOM_NUMERICAL = data["CUSTOM_NUMERICAL"]
+        TECHNICAL_INDICATORS = data["TECHNICAL_INDICATORS"]
+        TO_DROP = data["TO_DROP"]
+        CATEGORICAL = data["CATEGORICAL"]
 
     # Ensure 'Date' column is in datetime format
-    df_with_all_dummies['Date'] = pd.to_datetime(df_with_all_dummies['Date'])
+    df_with_all_dummies["Date"] = pd.to_datetime(df_with_all_dummies["Date"])
 
     # Get minimum and maximum dates from the DataFrame
     min_date_df = df_with_all_dummies.Date.min()
     max_date_df = df_with_all_dummies.Date.max()
 
     # Apply the temporal_split function to the DataFrame
-    df_with_all_dummies = temporal_split(df_with_all_dummies,
-                                         min_date=min_date_df,
-                                         max_date=max_date_df)
+    df_with_all_dummies = temporal_split(
+        df_with_all_dummies, min_date=min_date_df, max_date=max_date_df
+    )
 
     # Print the proportion of each split
-    print(df_with_all_dummies['Split'].value_counts() / len(df_with_all_dummies))
+    print(df_with_all_dummies["Split"].value_counts() / len(df_with_all_dummies))
 
     # Create a copy of the DataFrame for further analysis
     new_df = df_with_all_dummies.copy()
 
     # Group by 'Split' and aggregate statistics on the 'Date' column
-    print(new_df.groupby(['Split'])['Date'].agg(['min', 'max', 'count']))
+    print(new_df.groupby(["Split"])["Date"].agg(["min", "max", "count"]))
 
     # Set pandas display option to show all columns
-    pd.set_option('display.max_columns', None)
+    pd.set_option("display.max_columns", None)
 
     # Print the last row of the DataFrame
     print(new_df.tail(1))
 
- # Replace with actual dummy features if any
+    # Replace with actual dummy features if any
     features_list = NUMERICAL + DUMMIES
 
     # Print the features list
     print(features_list)
 
-    to_predict = 'Is_Positive_Growth_1h_Future'
+    to_predict = "Is_Positive_Growth_1h_Future"
 
     # Split the DataFrame into training, validation, and test sets
-    train_df = new_df[new_df.Split.isin(['Train'])].copy(deep=True)
-    valid_df = new_df[new_df.Split.isin(['Validation'])].copy(deep=True)
-    train_valid_df = new_df[new_df.Split.isin(['Train', 'Validation'])].copy(deep=True)
-    test_df = new_df[new_df.Split.isin(['Test'])].copy(deep=True)
+    train_df = new_df[new_df.Split.isin(["Train"])].copy(deep=True)
+    valid_df = new_df[new_df.Split.isin(["Validation"])].copy(deep=True)
+    train_valid_df = new_df[new_df.Split.isin(["Train", "Validation"])].copy(deep=True)
+    test_df = new_df[new_df.Split.isin(["Test"])].copy(deep=True)
 
     # Separate features and target variable for training and testing sets
     X_train = train_df[features_list + [to_predict]]
@@ -121,7 +126,9 @@ def split_and_cleaning():
     X_all = new_df[features_list + [to_predict]].copy(deep=True)
 
     # Print shapes of the datasets
-    print(f'length: X_train {X_train.shape}, X_validation {X_valid.shape}, X_test {X_test.shape}, X_train_valid = {X_train_valid.shape}, all combined: X_all {X_all.shape}')
+    print(
+        f"length: X_train {X_train.shape}, X_validation {X_valid.shape}, X_test {X_test.shape}, X_train_valid = {X_train_valid.shape}, all combined: X_all {X_all.shape}"
+    )
 
     # Clean the DataFrames from infinite values and NaNs
     X_train = clean_dataframe_from_inf_and_nan(X_train)
@@ -144,18 +151,22 @@ def split_and_cleaning():
     del X_test[to_predict]
     del X_all[to_predict]
 
-    with open('data_split.pkl', 'wb') as f:
-        pickle.dump({
-        'X_valid': X_valid,
-        'y_valid': y_valid,
-        'y_all': y_all,
-        'y_train': y_train,
-        'X_train_valid': X_train_valid,
-        'X_test': X_test,
-        'y_test': y_test,
-        'y_train_valid': y_train_valid,
-        'X_all': X_all
-        }, f)
+    with open("data_split.pkl", "wb") as f:
+        pickle.dump(
+            {
+                "X_valid": X_valid,
+                "y_valid": y_valid,
+                "y_all": y_all,
+                "y_train": y_train,
+                "X_train_valid": X_train_valid,
+                "X_test": X_test,
+                "y_test": y_test,
+                "y_train_valid": y_train_valid,
+                "X_all": X_all,
+            },
+            f,
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     split_and_cleaning()
