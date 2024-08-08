@@ -15,10 +15,10 @@ def add_date_features_and_shifts(df):
     df["Date"] = pd.to_datetime(df["Date"], utc=True).dt.tz_convert("Europe/Berlin")
     df.set_index("Date", inplace=True)
     # Extract year, month, weekday, and hour from the datetime index
-    df["Year"] = df.index.year
-    df["Month"] = df.index.month
-    df["Weekday"] = df.index.weekday
-    df["Hour"] = df.index.hour
+    df["Year"] = df.index.year.astype(int)
+    df["Month"] = df.index.month.astype(int)
+    df["Weekday"] = df.index.weekday.astype(int)
+    df["Hour"] = df.index.hour.astype(int)
 
 
 def top_stocks():
@@ -28,6 +28,9 @@ def top_stocks():
     )
     FIELDS = ["Symbol", "Name", "Volume"]
     stock_tickers = yfinance_most_active_stocks_web[0][FIELDS]
+
+    # Limit to top 25 most active stocks
+    stock_tickers = stock_tickers.head(25)
 
     # Initialize an empty DataFrame for storing stock data
     stocks_df = None
