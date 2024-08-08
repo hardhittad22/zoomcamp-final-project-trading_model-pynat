@@ -138,10 +138,10 @@ def get_coins():
 
     def generate_datetime_features(df):
         # Generate additional datetime features
-        df["Year"] = df.index.year
-        df["Month"] = df.index.month
-        df["Weekday"] = df.index.weekday
-        df["Hour"] = df.index.hour
+        df["Year"] = df.index.year.astype(int)
+        df["Month"] = df.index.month.astype(int)
+        df["Weekday"] = df.index.weekday.astype(int)
+        df["Hour"] = df.index.hour.astype(int)
         df["Coin"] = df["Ticker"].str.replace("USDT", "")  # Extracting Name
 
         return df
