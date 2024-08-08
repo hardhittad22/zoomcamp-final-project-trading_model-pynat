@@ -7,8 +7,8 @@ yfinance==0.2.41
 pandas-datareader==0.10.0    ?
 pandas_ta == 0.3.14b0
 
-plotly==5.17.0
-matplotlib==3.9.0
+plotly==5.23.0
+matplotlib==3.9.1
 seaborn==0.12.2
 
-scikit-learn==1.5.0
+scikit-learn==1.5.1
