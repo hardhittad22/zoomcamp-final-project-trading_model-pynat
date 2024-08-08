@@ -69,11 +69,9 @@ def split_and_cleaning():
         GROWTH = data["GROWTH"]
         DUMMIES = data["DUMMIES"]
         TO_PREDICT = data["TO_PREDICT"]
-        OHLCV = data["OHLCV"]
         CUSTOM_NUMERICAL = data["CUSTOM_NUMERICAL"]
         TECHNICAL_INDICATORS = data["TECHNICAL_INDICATORS"]
-        TO_DROP = data["TO_DROP"]
-        CATEGORICAL = data["CATEGORICAL"]
+    
 
     # Ensure 'Date' column is in datetime format
     df_with_all_dummies["Date"] = pd.to_datetime(df_with_all_dummies["Date"])
@@ -167,6 +165,7 @@ def split_and_cleaning():
             f,
         )
 
+    new_df.to_csv("prepared_df.csv", index=False)
 
 if __name__ == "__main__":
     split_and_cleaning()

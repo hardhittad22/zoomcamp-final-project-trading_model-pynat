@@ -159,11 +159,7 @@ def prepare():
         "High",
         "Low",
         "Close",
-        "Adj Close",
-        "Close",
-        "Volume",
-        "Close_Minus_1",
-        "Close_Plus_1",
+        "Volume"
     ]
     TO_PREDICT = [g for g in reduced_df.keys() if (g.find("Future") >= 0)]
     reduced_df["Ln_Volume"] = reduced_df["Volume"].apply(safe_log)
@@ -450,13 +446,11 @@ def prepare():
     with open("column_lists.pkl", "wb") as f:
         pickle.dump(
             {
-                "OHLCV": OHLCV,
                 "GROWTH": GROWTH,
                 "TO_PREDICT": TO_PREDICT,
                 "CUSTOM_NUMERICAL": CUSTOM_NUMERICAL,
                 "TECHNICAL_INDICATORS": TECHNICAL_INDICATORS,
                 "NUMERICAL": NUMERICAL,
-                "CATEGORICAL": CATEGORICAL,
                 "DUMMIES": DUMMIES,
             },
             f,
@@ -473,7 +467,7 @@ def prepare():
         "BBP_binned",
     ]
 
-    TO_DROP = ["Date"] + CATEGORICAL + OHLCV + binned_features
+    TO_DROP = CATEGORICAL + OHLCV + binned_features
     OTHER = [
         k
         for k in reduced_df.keys()
