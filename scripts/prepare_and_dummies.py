@@ -141,7 +141,7 @@ def treat_missing_values(df: pd.DataFrame):
 
 def prepare():
     # Load the dataset from a CSV file
-    combined_df = pd.read_csv("everything_data.csv")
+    combined_df = pd.read_csv("everything_data.csv", low_memory=False)
 
     if "Date" not in combined_df.columns:
         combined_df.reset_index(inplace=True)  # holt die Indexspalte zurück
@@ -158,8 +158,9 @@ def prepare():
         "Open",
         "High",
         "Low",
-        "Close",
-        "Volume"
+        # "Close", we drop this as we have adj close
+        "Adj Close",
+        # "Volume" we drop this as we have ln_volume
     ]
     TO_PREDICT = [g for g in reduced_df.keys() if (g.find("Future") >= 0)]
     reduced_df["Ln_Volume"] = reduced_df["Volume"].apply(safe_log)
@@ -228,9 +229,9 @@ def prepare():
         "Fibonacci_100",
     ]
     CATEGORICAL = ["Ticker", "Ticker_Type", "Coin"]
-    
-    NUMERICAL = GROWTH + TECHNICAL_INDICATORS + CUSTOM_NUMERICAL
-   
+
+    NUMERICAL = GROWTH + TECHNICAL_INDICATORS + CUSTOM_NUMERICAL + OHLCV
+
     print(reduced_df.Ticker.nunique())
     reduced_df.tail(1)
 
@@ -238,7 +239,9 @@ def prepare():
 
     # Ensure 'Date' column is present and convert it to a consistent date format
     if "Date" in reduced_df.columns:
-        reduced_df["Date"] = pd.to_datetime(reduced_df["Date"], errors="coerce")
+        reduced_df["Date"] = pd.to_datetime(
+            reduced_df["Date"], errors="coerce", utc=True
+        )
         reduced_df.dropna(subset=["Date"], inplace=True)
     else:
         print("The column 'Date' is not present.")
@@ -284,7 +287,7 @@ def prepare():
     df_with_dummies = add_bitcoin_halvings(df_with_dummies)
     df_with_dummies = treat_missing_values(df_with_dummies)
 
-    # Show Results
+    # Show Results to check if everything went fine
     pd.set_option("display.max_columns", None)
     print(df_with_dummies.columns)
     print(df_with_dummies.head(2))
@@ -467,13 +470,13 @@ def prepare():
         "BBP_binned",
     ]
 
-    TO_DROP = CATEGORICAL + OHLCV + binned_features
+    TO_DROP = CATEGORICAL + ["Close"] + binned_features + ["Volume"]
     OTHER = [
         k
         for k in reduced_df.keys()
         if k not in OHLCV + TO_DROP + CATEGORICAL + NUMERICAL + TO_PREDICT
     ]
-    print(OTHER)
+    print(f"left indicators {OTHER}")
 
     df_with_all_dummies.drop(columns=TO_DROP, inplace=True, errors="ignore")
 

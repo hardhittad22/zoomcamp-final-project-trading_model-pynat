@@ -48,11 +48,11 @@ def clean_dataframe_from_inf_and_nan(df):
     cat_cols = df.select_dtypes(include=["category"]).columns
     df[cat_cols] = df[cat_cols].astype("object")
 
-    # Replace +-inf with NaN
-    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    # Replace +-inf with NaN 
+    df = df.replace([np.inf, -np.inf], np.nan)
+     # Fill NaN values with 0
+    df = df.fillna(0)
 
-    # Fill NaN values with 0
-    df.fillna(0, inplace=True)
 
     # Convert object columns back to categorical
     df[cat_cols] = df[cat_cols].astype("category")
@@ -74,7 +74,7 @@ def split_and_cleaning():
     
 
     # Ensure 'Date' column is in datetime format
-    df_with_all_dummies["Date"] = pd.to_datetime(df_with_all_dummies["Date"])
+    df_with_all_dummies["Date"] = pd.to_datetime(df_with_all_dummies["Date"], utc=True)
 
     # Get minimum and maximum dates from the DataFrame
     min_date_df = df_with_all_dummies.Date.min()
@@ -164,6 +164,7 @@ def split_and_cleaning():
             },
             f,
         )
+    new_df = new_df.drop(columns=["Date"])
 
     new_df.to_csv("prepared_df.csv", index=False)
 
