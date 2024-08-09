@@ -6,11 +6,11 @@ import pickle
 def temporal_split(
     df, min_date, max_date, train_prop=0.7, val_prop=0.15, test_prop=0.15
 ):
-    min_date = pd.to_datetime(min_date) if isinstance(min_date, str) else min_date
-    max_date = pd.to_datetime(max_date) if isinstance(max_date, str) else max_date
+    #min_date = pd.to_datetime(min_date) if isinstance(min_date, str) else min_date
+   # max_date = pd.to_datetime(max_date) if isinstance(max_date, str) else max_date
     # Convert min_date and max_date to pandas Timestamp if they are strings
-    min_date = pd.Timestamp(min_date)
-    max_date = pd.Timestamp(max_date)
+   # min_date = pd.Timestamp(min_date)
+   # max_date = pd.Timestamp(max_date)
 
     # Define the end dates for train and validation sets based on proportions
     train_end = min_date + pd.Timedelta(days=(max_date - min_date).days * train_prop)
@@ -104,7 +104,7 @@ def split_and_cleaning():
     features_list = NUMERICAL + DUMMIES
 
     # Print the features list
-    print(features_list)
+    print(f"features list: {features_list}")
 
     to_predict = "Is_Positive_Growth_1h_Future"
 
@@ -152,19 +152,20 @@ def split_and_cleaning():
     with open("data_split.pkl", "wb") as f:
         pickle.dump(
             {
+                "X_train": X_train,
                 "X_valid": X_valid,
-                "y_valid": y_valid,
-                "y_all": y_all,
-                "y_train": y_train,
                 "X_train_valid": X_train_valid,
                 "X_test": X_test,
-                "y_test": y_test,
-                "y_train_valid": y_train_valid,
                 "X_all": X_all,
+                "y_train": y_train,
+                "y_valid": y_valid,
+                "y_train_valid": y_train_valid,
+                "y_test": y_test,
+                "y_all": y_all                   
             },
             f,
         )
-    new_df = new_df.drop(columns=["Date"])
+   # new_df = new_df.drop(columns=["Date"])
 
     new_df.to_csv("prepared_df.csv", index=False)
 
