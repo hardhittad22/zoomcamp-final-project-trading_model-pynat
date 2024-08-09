@@ -49,20 +49,8 @@ def fit_decision_tree(X, y, max_depth=20):
 # Main function for modeling
 def train_decision_tree_model():
     new_df = pd.read_csv("prepared_df.csv")
-    #new_df = new_df.drop(
-     #   columns=[
-      #      "Date"
-   #     ]
-  #  )
-
+  
     # Load necessary columns and data splits
-    with open("column_lists.pkl", "rb") as f:
-        data = pickle.load(f)
-        NUMERICAL = data["NUMERICAL"]
-        GROWTH = data["GROWTH"]
-        DUMMIES = data["DUMMIES"]
-        TO_PREDICT = data["TO_PREDICT"]
-
     with open("data_split.pkl", "rb") as f:
         split_data = pickle.load(f)
         X_valid = split_data["X_valid"]
@@ -88,23 +76,18 @@ def train_decision_tree_model():
     ).astype(np.int8)
     new_df["pred09_macd_hist_positive"] = (new_df["MACDh_12_26_9"] > 0).astype(np.int8)
 
-    to_predict = "Is_Positive_Growth_1h_Future"
-
     # Evaluate the correctness of the manual predictions
+    to_predict = "Is_Positive_Growth_1h_Future"
     PREDICTIONS, IS_CORRECT = get_predictions_correctness(
         df=new_df, to_predict=to_predict
     )
     print(new_df[PREDICTIONS + IS_CORRECT + [to_predict]])
 
-    # Fit a Decision Tree
-    X_train_valid = new_df[new_df.Split.isin(["Train", "Validation"])].drop(
-        columns=[to_predict]
-    )
-    y_train_valid = new_df[new_df.Split.isin(["Train", "Validation"])][to_predict]
 
+    
+    #training Decision Tree
     clf_10, train_columns = fit_decision_tree(
-        X=X_train_valid, y=y_train_valid, max_depth=10
-    )
+       X=X_train_valid, y=y_train_valid, max_depth=10)
 
     # Predict on the full dataset using the trained Decision Tree
     y_pred_all = clf_10.predict(X_all)
@@ -115,35 +98,42 @@ def train_decision_tree_model():
         df=new_df, to_predict=to_predict
     )
 
-    # Precision vs Max Depth Visualization
-    precision_by_depth = {}
-    best_precision = 0
-    best_depth = 0
+   ### uncomment if you want to run it
+   # Hyperparameter tuning Decision Tree
+    #precision_by_depth = {}
+    #best_precision = 0
+    #best_depth = 0
 
-    for depth in range(1, 21):
-        print(f"Working with a tree of a max depth= {depth}")
-        clf, train_columns = fit_decision_tree(
-            X=X_train_valid, y=y_train_valid, max_depth=depth
-        )
-        y_pred_valid = clf.predict(X_valid)
-        precision_valid = precision_score(y_valid, y_pred_valid)
-        y_pred_test = clf.predict(X_test)
-        precision_test = precision_score(y_test, y_pred_test)
-        print(
-            f"  Precision on test is {precision_test}, (precision on valid is {precision_valid} - tends to overfit)"
-        )
-        precision_by_depth[depth] = round(precision_test, 4)
-        if precision_test >= best_precision:
-            best_precision = round(precision_test, 4)
-            best_depth = depth
-        tree_rules = export_text(
-            clf, feature_names=list(X_train_valid.columns), max_depth=3
-        )
-        print(tree_rules)
-        print("------------------------------")
+    #for depth in range(1, 21):
+     #   print(f"Working with a tree of a max depth= {depth}")
+     #   clf, train_columns = fit_decision_tree(
+     #       X=X_train_valid, y=y_train_valid, max_depth=depth
+     #   )
+     #   y_pred_valid = clf.predict(X_valid)
+     #   precision_valid = precision_score(y_valid, y_pred_valid)
+     #   y_pred_test = clf.predict(X_test)
+     #   precision_test = precision_score(y_test, y_pred_test)
+     #   print(
+     #       f"  Precision on test is {precision_test}, (precision on valid is {precision_valid} - tends to overfit)"
+     #   )
+     #   precision_by_depth[depth] = round(precision_test, 4)
+     #   if precision_test >= best_precision:
+     #       best_precision = round(precision_test, 4)
+     #       best_depth = depth
+     #   tree_rules = export_text(
+      #      clf, feature_names=list(X_train_valid.columns), max_depth=3
+       # )
+      #  print(tree_rules)
+       # print("------------------------------")
 
-    print(f"All precisions by depth: {precision_by_depth}")
-    print(f"The best precision is {best_precision} and the best depth is {best_depth}")
+  #  print(f"All precisions by depth: {precision_by_depth}")
+   # print(f"The best precision is {best_precision} and the best depth is {best_depth}")
+    ####
+
+
+    precision_by_depth = {1: 0.5161, 2: 0.5161, 3: 0.5155, 4: 0.518, 5: 0.5219, 6: 0.5176, 7: 0.5162, 8: 0.5192, 9: 0.5173, 10: 0.5195, 11: 0.5215, 12: 0.5158, 13: 0.5178, 14: 0.5161, 15: 0.512, 16: 0.512, 17: 0.5094, 18: 0.5094, 19: 0.5092, 20: 0.5087}
+    best_depth = 5
+    best_precision = 0.5219
 
     # Convert the precision data to a DataFrame for visualization
     precision_df = pd.DataFrame(
@@ -183,11 +173,24 @@ def train_decision_tree_model():
     # Predict on the full dataset with the best model
     y_pred_clf_best = clf_best.predict(X_all)
     new_df["pred11_clf_best"] = y_pred_clf_best
+    
 
     # Recalculate the correctness after adding the new predictions
     PREDICTIONS, IS_CORRECT = get_predictions_correctness(
         df=new_df, to_predict=to_predict
     )
+
+    # Saving Model (clf_10)
+    with open("clf_10_model.pkl", "wb") as f:
+        pickle.dump(clf_10, f)
+
+    # Saving best trained model (clf_best)
+    with open("clf_best_model.pkl", "wb") as f:
+        pickle.dump(clf_best, f)
+
+    # Saving bet_precision and best_depth
+    with open("best_model_info.pkl", "wb") as f:
+        pickle.dump({"best_precision": best_precision, "best_depth": best_depth}, f)
 
     new_df.to_csv("updated_predictions.csv", index=False)
 
