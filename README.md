@@ -48,7 +48,7 @@ Findings: There are ongoing difficulties accessing Binance's APIs, suggesting th
 
 Difficulties: As this was my first experience developing a RF, LR and DT model, I invested significant time in research and self-education to build the necessary foundation. Due to limited time, I was unable to integrate certain factors, such as sentiment analysis, which I plan to incorporate in future iterations.
 Defining critical events, particularly "black swan" events, and determining appropriate time frames for their impact proved to be challenging. Despite the challenges, the process was highly educational and enjoyable. I'm excited to continue refining the model and expanding its capabilities.   
-### WAGMI 
+#### WAGMI    
 
 
 ## Future Work
@@ -68,6 +68,7 @@ Required data can be downloaded from:
 File 1: [Crypto Data](https://drive.google.com/file/d/1-09LDYhQIjgorvsxgqVkhd1T3QvP3akU/view?usp=sharing)
 File 2: [Stocks Data](https://drive.google.com/file/d/1PjkT11UkqvOw7Sl7AhrDjGHI3W7-f-Bh/view?usp=sharing)
 File 3: [Both combined with calculations](https://drive.google.com/file/d/1fSoSmx0lkBawGWfySwqaAOTTK43-9nBM/view?usp=sharing)
+File 4: [DataFrame after modeling](https://drive.google.com/file/d/1MpfzmSU5ixSQE_ZS8ZNjpMDFjVP76Fmy/view?usp=sharing)
 
 ### Automatically Load Data in Colab     
 from google.colab import drive
