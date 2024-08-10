@@ -65,12 +65,9 @@ Incorporating real-time data for live trading
 
 ## Access Data    
 Required data can be downloaded from:     
-File 1: Crypto Data   
-https://drive.google.com/file/d/1-09LDYhQIjgorvsxgqVkhd1T3QvP3akU/view?usp=drive_link    
-File 2: Stocks Data     
-https://drive.google.com/file/d/1PjkT11UkqvOw7Sl7AhrDjGHI3W7-f-Bh/view?usp=drive_link    
-File 3: Both combined with calculations   
-https://drive.google.com/file/d/1fSoSmx0lkBawGWfySwqaAOTTK43-9nBM/view?usp=drive_link
+File 1: [Crypto Data](https://drive.google.com/file/d/1-09LDYhQIjgorvsxgqVkhd1T3QvP3akU/view?usp=sharing)
+File 2: [Stocks Data](https://drive.google.com/file/d/1PjkT11UkqvOw7Sl7AhrDjGHI3W7-f-Bh/view?usp=sharing)
+File 3: [Both combined with calculations](https://drive.google.com/file/d/1fSoSmx0lkBawGWfySwqaAOTTK43-9nBM/view?usp=sharing)
 
 ### Automatically Load Data in Colab     
 from google.colab import drive
