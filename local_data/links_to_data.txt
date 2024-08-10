@@ -11,4 +11,4 @@ https://drive.google.com/file/d/1fSoSmx0lkBawGWfySwqaAOTTK43-9nBM/view?usp=drive
 
 
 link to colab
-https://colab.research.google.com/drive/1knwinwthVfykMQbvJpIJlI9b3E7v_zQ1#scrollTo=8ck3_FYu4bU2
+https://colab.research.google.com/drive/1knwinwthVfykMQbvJpIJlI9b3E7v_zQ1#scrollTo=KogH7LhHWJJU
