@@ -1,0 +1,41 @@
+# macOS system files
+.DS_Store
+
+# VS Code settings
+.vscode/
+
+# Python virtual environment
+venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Log and temporary files
+*.log
+*.tmp
+
+# Additional directories and files
+.mypy_cache/
+.pytest_cache/
+.coverage
+.tox/
+.nox/
+.hypothesis/
+.coverage.*
+*.cover
+
+# Sensitive data
+.env
+config.json
+config.yml
+
+# Backup files
+*.bak
+*.old
